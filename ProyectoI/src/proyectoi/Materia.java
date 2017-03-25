@@ -21,11 +21,23 @@ public class Materia {
     public String getNombre() {
         return nombre;
     }
+    public Materia cloneMyself(){
+        Materia m= new Materia(this.nombre);
+        ArrayList<Evaluacion> tmp=new ArrayList<>();
+        for (Evaluacion e: evaluationCriteria)
+            tmp.add(e.cloneMyself());
+        m.setEvaluationCriteria(tmp);
+        return m;
+    }
 
+    public void setEvaluationCriteria(ArrayList<Evaluacion> evaluationCriteria) {
+        this.evaluationCriteria = evaluationCriteria;
+    }
 
     public void addEvaluation(Evaluacion e){
         evaluationCriteria.add(e);
     }
+    
 
     public ArrayList<Evaluacion> getEvaluationCriteria() {
         return evaluationCriteria;
