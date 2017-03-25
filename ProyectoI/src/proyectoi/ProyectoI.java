@@ -162,14 +162,64 @@ public class ProyectoI extends Application {
                     registerGrid.add(elements, 1,0);
                     registerGrid.add(new Label("Materia"),0,1);
                     registerGrid.add(comboBox,1,1);
-                    registerGrid.add(asignar, 1, 2);
+                    registerGrid.add(asignar, 2, 2);
                     asignar.setText("Asignar");
                     asignar.setOnAction(new EventHandler<ActionEvent>() {
                         @Override
                         public void handle(ActionEvent event) {
                             Materia subjectAnalyzed=materias.get(nombresMaterias.indexOf(comboBox.getValue()));
-                            if(subjectAnalyzed.getEvaluationCriteria()==null){
-                                
+                            
+                            if(subjectAnalyzed.getEvaluationCriteria().size()==0){
+                                boolean newFlag= true;
+                                int number=0;
+                                try{
+                                    number=Integer.parseInt(elements.getText());
+                                }catch(Exception e){
+                                    new Warnings("Probablemente no ingresó un número,"
+                                            + " ¿Tantas ganas hay de reventar el programita?");
+                                    newFlag=false;
+                                }
+                                if(newFlag){
+                                    if (number<1)
+                                        new Warnings("El número debe ser mayor o igual que 1, obvio");
+                                    else{
+                                        ArrayList<TextField> campitosTextoP= new ArrayList<>();
+                                        ArrayList<TextField> campitosTextoN= new ArrayList<>();
+                                        registerGrid.add(new Label("Porcentaje"), 0,3);
+                                        registerGrid.add(new Label("Nombre"),1,3);
+                                        int ii;
+                                        for(ii=0; ii<number;ii++){
+                                            campitosTextoP.add(new TextField());
+                                            campitosTextoN.add(new TextField());
+                                            registerGrid.add(campitosTextoP.get(ii), 0, 4+ii);
+                                            registerGrid.add(campitosTextoN.get(ii), 1, 4+ii);                                            
+                                        }
+                                        Button finalPart= new Button();
+                                        finalPart.setText("Ingresar");
+                                        finalPart.setOnAction(new EventHandler<ActionEvent>() {
+                                            @Override
+                                            public void handle(ActionEvent event) {
+                                                try{
+                                                    int counter=0;
+                                                    for(int jj=0; jj<campitosTextoP.size(); jj++)
+                                                        counter+=Integer.parseInt(campitosTextoP.get(jj).getText());  
+                                                    if (counter!=100)
+                                                        new Warnings("No te puedo dejar pasar si la suma de "
+                                                                + "porcentajes no da 100 exacto, sorry xD.");
+                                                    for(int jj=0; jj<campitosTextoP.size(); jj++){
+                                                        subjectAnalyzed.addEvaluation(new Evaluacion(campitosTextoN.get(jj).getText(),Integer.parseInt(campitosTextoP.get(jj).getText()))); 
+                                                    }
+                                                    registerStage.close();
+                                                    
+                                                }catch(Exception e){
+                                                    new Warnings("Probablemente algún porcentaje no es"
+                                                            + " un número.");
+                                                }
+                                            }
+                                        });
+                                        registerGrid.add(finalPart, 2, 5+ii);
+                                    }
+                                }
                             }else
                                 new Warnings("Lo siento, debe reiniciar la aplicación si"
                                         + " desea poner nuevos criterios de evaluación ):");
@@ -177,7 +227,7 @@ public class ProyectoI extends Application {
                     });
                    
                     
-                    Scene registerScene = new Scene(registerGrid,400,600);
+                    Scene registerScene = new Scene(registerGrid,500,600);
                     registerStage.setTitle("Añadir Elementos de Evaluación");
                     registerStage.setScene(registerScene);
                     registerStage.show();

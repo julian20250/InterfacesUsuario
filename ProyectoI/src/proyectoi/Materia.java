@@ -22,12 +22,21 @@ public class Materia {
         return nombre;
     }
 
-    public void setEvaluationCriteria(ArrayList<Evaluacion> evaluationCriteria) {
-        this.evaluationCriteria = evaluationCriteria;
+
+    public void addEvaluation(Evaluacion e){
+        evaluationCriteria.add(e);
     }
 
     public ArrayList<Evaluacion> getEvaluationCriteria() {
         return evaluationCriteria;
+    }
+    @Override
+    public String toString(){
+        String a="Materia "+this.getNombre();
+        a+="\nCriterios de Evaluación:";
+        for (Evaluacion e: evaluationCriteria)
+            a+="\n"+e.toString();
+        return a;
     }
     
     
