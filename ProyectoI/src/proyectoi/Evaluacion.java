@@ -30,6 +30,10 @@ public class Evaluacion {
         this.nota = nota;
     }
 
+    public int getPercentage() {
+        return percentage;
+    }
+
     public String getName() {
         return name;
     }

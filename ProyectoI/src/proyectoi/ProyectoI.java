@@ -205,9 +205,9 @@ public class ProyectoI extends Application {
                                                     int counter=0;
                                                     for(int jj=0; jj<campitosTextoP.size(); jj++)
                                                         counter+=Integer.parseInt(campitosTextoP.get(jj).getText());  
-                                                    if (counter!=100)
+                                                    if (counter>100)
                                                         new Warnings("No te puedo dejar pasar si la suma de "
-                                                                + "porcentajes no da 100 exacto, sorry xD.");
+                                                                + "porcentajes no da menos de 100, sorry xD.");
                                                     else{
                                                         for(int jj=0; jj<campitosTextoP.size(); jj++){
                                                             subjectAnalyzed.addEvaluation(new Evaluacion(campitosTextoN.get(jj).getText(),Integer.parseInt(campitosTextoP.get(jj).getText()))); 
@@ -478,6 +478,144 @@ public class ProyectoI extends Application {
                 });
                 
                 Scene meanScene= new Scene(meanGrid,400,300);
+                meanStage.setTitle("Desviación para un Elemento de Evaluación");
+                meanStage.setScene(meanScene);
+                meanStage.show();
+            }
+        });
+        Button finalNote= new Button();
+        finalNote.setText("Nota Final");
+        finalNote.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                Stage notesStage= new Stage();
+                GridPane notesGrid=new GridPane();
+                
+                ArrayList<String> nombresEstudiantes = new ArrayList<>();
+                   for (Estudiante m: estudiantes)
+                       nombresEstudiantes.add(m.getNombre());
+                   
+                ObservableList<String> options =
+                    FXCollections.observableArrayList(nombresEstudiantes);
+                final ComboBox comboBox = new ComboBox(options);
+                comboBox.setVisibleRowCount(5);
+                
+                notesGrid.add(new Label("Estudiante:"),0,0);
+                notesGrid.add(comboBox,1,0);
+                comboBox.valueProperty().addListener(new ChangeListener() {
+                    @Override
+                    public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                        Estudiante actualStudent=estudiantes.get(nombresEstudiantes.indexOf(comboBox.getValue()));
+                        actualStudent.renderNotes();
+                        ArrayList<Materia> validOnes= new ArrayList<>();
+                        for (Materia m: actualStudent.getNotas())
+                            if(m.getEvaluationCriteria().size()!=0)
+                                validOnes.add(m);
+                        if(validOnes.size()==0){
+                            new Warnings("No hay materias con posible "
+                                    + "registro de notas para "+comboBox.getValue());
+                            notesStage.close();
+                        }
+                        else{
+                            ArrayList<String> nombresMaterias =new ArrayList<>();
+                            for (Materia m: validOnes)
+                                nombresMaterias.add(m.getNombre());
+                            ObservableList<String> options2 =
+                                FXCollections.observableArrayList(nombresMaterias);
+                            final ComboBox comboBox2 = new ComboBox(options2);
+                            comboBox2.setVisibleRowCount(5);
+                            notesGrid.add(new Label("Materia:"),0,1);
+                            notesGrid.add(comboBox2,1,1);
+                            comboBox2.valueProperty().addListener(new ChangeListener() {
+                                @Override
+                                public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                                    Materia actualSubject=validOnes.get(nombresMaterias.indexOf(comboBox2.getValue()));
+                                    float nota=0;
+                                    for (Evaluacion e: actualSubject.getEvaluationCriteria())
+                                        nota+=(float)e.getNota()*e.getPercentage()/100;
+                                    notesGrid.add(new Label("Nota final: "+nota),0,2,2,2);
+                                }
+                            });
+                        }
+                    }
+                });
+                Scene notesScene = new Scene(notesGrid,600,300);
+                notesStage.setTitle("Registrar Notas");
+                notesStage.setScene(notesScene);
+                notesStage.show();
+            }
+        });
+        Button extra= new Button();
+        extra.setText("Normalización");
+        extra.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                Stage meanStage=new Stage();
+                GridPane meanGrid= new GridPane();
+                ArrayList<Materia> subEv= new ArrayList<>(); /** materias con evaluación */
+                ArrayList<String> nombresMaterias = new ArrayList<>();
+                for (Materia m: materias)
+                    if(m.getEvaluationCriteria().size()!=0){
+                        subEv.add(m);
+                        nombresMaterias.add(m.getNombre());
+                    }
+                if (subEv.size()==0){
+                    new Warnings("No hay materias con evaluación.");
+                    meanStage.close();
+                }
+                ObservableList<String> options =
+                    FXCollections.observableArrayList(nombresMaterias);
+                final ComboBox comboBox = new ComboBox(options);
+                comboBox.setVisibleRowCount(5);
+                meanGrid.add(new Label("Materia: "),0,0);
+                meanGrid.add(comboBox, 1, 0);
+                comboBox.valueProperty().addListener(new ChangeListener() {
+                    @Override
+                    public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                        Materia actualSubject=subEv.get(nombresMaterias.indexOf(comboBox.getValue()));
+                        ArrayList<String> nombreEvaluaciones=new ArrayList<>();
+                        for(Evaluacion e: actualSubject.getEvaluationCriteria())
+                            nombreEvaluaciones.add(e.getName());
+                        ObservableList<String> options2 =
+                            FXCollections.observableArrayList(nombreEvaluaciones);
+                        final ComboBox comboBox2 = new ComboBox(options2);
+                        comboBox2.setVisibleRowCount(5);
+                        meanGrid.add(new Label("Evaluación: "),0,1);
+                        meanGrid.add(comboBox2, 1, 1);
+                        comboBox2.valueProperty().addListener(new ChangeListener() {
+                            
+                            @Override
+                            public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+                                meanGrid.add(new Label("Distancia al Promedio:"),0,2);
+                                int position=3;
+                                float promedio=0;
+                                int number=0;
+                                for (Estudiante e: estudiantes)
+                                    for(Materia m: e.getNotas())
+                                        if(m.getNombre().equals(comboBox.getValue()))
+                                            for (Evaluacion ev: m.getEvaluationCriteria())
+                                                if(ev.getName().equals(comboBox2.getValue())){
+                                                    number++;
+                                                    promedio+=ev.getNota();
+                                                }                                
+                                                
+                                promedio=(float)promedio/number;
+                                for (Estudiante e: estudiantes)
+                                    for(Materia m: e.getNotas())
+                                        if(m.getNombre().equals(comboBox.getValue()))
+                                            for (Evaluacion ev: m.getEvaluationCriteria())
+                                                if(ev.getName().equals(comboBox2.getValue())){
+                                                    meanGrid.add(new Label(e.getNombre()+": "+(ev.getNota()-promedio)),0,position);
+                                                    position++;
+                                                }            
+                                
+                            }
+                        });
+                        
+                    }
+                });
+                
+                Scene meanScene= new Scene(meanGrid,400,600);
                 meanStage.setTitle("Promedio para un Elemento de Evaluación");
                 meanStage.setScene(meanScene);
                 meanStage.show();
@@ -490,11 +628,10 @@ public class ProyectoI extends Application {
         grid.add(notes,0,1);
         grid.add(mean,1,1);
         grid.add(deviation,2,1);
+        grid.add(finalNote,0,2);
+        grid.add(extra,1,2);
         
-        grid.add(new Label(""),0,2);
-        grid.add(new Label("Zona de Testeos"),0,3);
-        grid.add(testingStudent, 0, 4);
-        grid.add(testEvaluation,1,4);
+        
         Scene scene = new Scene(grid, 800, 300);
         
         primaryStage.setTitle("Rajatrón Pro");
